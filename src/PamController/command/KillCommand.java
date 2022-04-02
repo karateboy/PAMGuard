@@ -13,9 +13,14 @@ public class KillCommand extends ExtCommand {
 	}
 
 	@Override
-	public boolean execute() {
+	public String execute(String command) {
 		System.exit(0);
-		return true;
+		return getName();
+	}
+	
+	@Override
+	public String getHint() {
+		return "kill PAMguard, don't necessarily stop detectors or clean anything up";
 	}
 
 }

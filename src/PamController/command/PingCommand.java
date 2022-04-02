@@ -9,8 +9,12 @@ public class PingCommand extends ExtCommand {
 	}
 
 	@Override
-	public boolean execute() {
-		return true;
+	public String execute(String command) {
+		return getName();
 	}
 
+	@Override
+	public String getHint() {
+		return "ping PAMGuard to see if it's alive";
+	}
 }

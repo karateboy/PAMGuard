@@ -25,7 +25,7 @@ import SoundRecorder.trigger.RecorderTriggerData;
  * @author Doug Gillespie
  *
  */
-public class NetworkController extends PamControlledUnit {
+public class NetworkController extends CommandManager {
 
 	
 	private PamController pamController;
@@ -38,31 +38,25 @@ public class NetworkController extends PamControlledUnit {
 	
 	private boolean initialisationComplete = false;
 	
-	static private final int MAX_COMMAND_LENGTH = 256;
+	static private final int MAX_COMMAND_LENGTH = 4096;
 	
 	private byte[] byteBuffer = new byte[MAX_COMMAND_LENGTH];
 	
 	private NetworkRecorderTrigger[] recorderTriggers;
+
+	private static NetworkController singleInstance;
 	
-	private static String unitType = "Network Controller";
-	
-	private ArrayList<ExtCommand> networkCommands = new ArrayList<ExtCommand>();
+	private static String unitName = "Network Controller";
 
 	public NetworkController(PamController pamController) {
-		super(unitType, unitType);
+		super(pamController, unitName);
 		this.pamController = pamController;
-		
-		networkCommands.add(new StartCommand());
-		networkCommands.add(new StopCommand());
-		networkCommands.add(new PingCommand());
-		networkCommands.add(new StatusCommand());
-		networkCommands.add(new SummaryCommand());
-		networkCommands.add(new ExitCommand());
-		networkCommands.add(new KillCommand());
 		
 		listenerThread = new ListenerThread();
 		Thread aThread = new Thread(listenerThread);
 		aThread.start();
+		
+		singleInstance = this;
 	}
 	
 	class ListenerThread implements Runnable {
@@ -130,82 +124,14 @@ public class NetworkController extends PamControlledUnit {
 		}
 	}
 
-	/**
-	 * Interpret and act on a udp command string. 
-	 * @param command command string
-	 * @return false if the command was to exit
-	 * the program (in which case this thread will
-	 * exit and close the port). True otherwise. 
-	 */
-	private boolean interpretCommand(String command) {
-		//System.out.println(String.format("New UDP Command %s", command));
-		
-		command = command.toLowerCase();
-		// strip of the first two letters if they begin pg ...
-		if (command.substring(0,2).equals("pg")) {
-			command = command.substring(2); 
-		}
-		ExtCommand extCommand = findCommand(command);
-		if (extCommand == null) {
-			sendData("Cmd \"" + command + "\" Not Recognised.");
-			return false;
-		}
-		if (extCommand.canExecute() == false) {
-			sendData("Cmd \"" + command + "\" Cannot Execute.");
-			sendData("   Cmd return string = " + extCommand.getReturnString());
-			return false;
-		}
-		extCommand.execute();
-		sendData(extCommand.getReturnString());
-		
-//		
-//		if (command.equals("pgstart")) {
-//			sendData("PgAck " + "pgstart");
-//			pamController.pamStart();
-//		}
-//		else if (command.equals("pgstop")) {
-//			sendData("PgAck " + "pgstop");
-//			pamController.pamStop();
-//		}
-//		else if (command.equals("pgping")) {
-//			sendData("PgAck " + "pgping");
-//		}
-//		else if (command.equals("pgstatus")) {
-//			sendData("PgAck Status " + pamController.getPamStatus());
-//		}
-//		else if (command.equals("pgsetrec")) {
-//			sendData("PgAck pgsetrec");
-//			
-//			//triggerRecording(String name, int seconds);
-//		}
-//		else if (command.equals("pgexit")) {
-//			sendData("Exiting PAMGUARD");
-//			System.exit(0);
-//			return false;
-//		}
-//		else{
-//			sendData("PgAck " + "Cmd Not Recognised.");
-//		}
-
-		
-		return true;
-	}
 	
-	private ExtCommand findCommand(String command) {
-		for (ExtCommand aCommand:networkCommands) {
-			if (aCommand.getName().equals(command)) {
-				return aCommand;
-			}
-		}
-		return null;
-	}
-
-	private boolean sendData(String dataString) {
+	public boolean sendData(String dataString) {
 		DatagramPacket packet = new DatagramPacket(dataString.getBytes(), dataString.length());
 		packet.setAddress(udpPacket.getAddress());
 		packet.setPort(udpPacket.getPort());
 		try {
 			receiveSocket.send(packet);
+//			receiveSocket.
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -229,6 +155,7 @@ public class NetworkController extends PamControlledUnit {
 		return new String(udpPacket.getData(), 0, udpPacket.getLength());
 	}
 
+	@Override
 	public void notifyModelChanged(int changeType) {
 		switch (changeType){
 		case PamControllerInterface.INITIALIZATION_COMPLETE:

@@ -13,8 +13,9 @@ public class StartCommand extends ExtCommand {
 	}
 
 	@Override
-	public boolean execute() {
-		return PamController.getInstance().pamStart();
+	public String execute(String command) {
+		boolean ok = PamController.getInstance().pamStart();
+		return getReturnString();
 	}
 
 	@Override
@@ -30,9 +31,13 @@ public class StartCommand extends ExtCommand {
 		}
 	}
 
-	@Override
 	public String getReturnString() {
 		return returnString;
+	}
+
+	@Override
+	public String getHint() {
+		return "Start PAMGuard processing";
 	}
 
 }

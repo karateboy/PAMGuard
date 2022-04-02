@@ -54,6 +54,7 @@ import generalDatabase.DBControlUnit;
 import javafx.stage.Stage;
 import Array.ArrayManager;
 import PamController.command.NetworkController;
+import PamController.command.TerminalController;
 import PamController.command.WatchdogComms;
 import PamController.masterReference.MasterReferencePoint;
 import PamController.settings.output.xml.PamguardXMLWriter;
@@ -269,6 +270,11 @@ public class PamController implements PamControllerInterface, PamSettings {
 		setupPamguard();
 
 		setupGarbageCollector();
+		
+
+//		if (PamGUIManager.getGUIType() == PamGUIManager.NOGUI) {
+//		}
+		
 		//		diagnosticTimer = new Timer(1000, new DiagnosticTimer());
 		//		diagnosticTimer.start();
 	}
@@ -293,7 +299,10 @@ public class PamController implements PamControllerInterface, PamSettings {
 	 */
 	public static void create(int runMode) {
 		if (uniqueController == null) {
-			new PamController(runMode, null);
+			PamController pamcontroller = new PamController(runMode, null);
+			// I don't see any reason not have have this running with the GUI. 
+			TerminalController tc = new TerminalController(pamcontroller);
+			tc.getTerminalCommands();
 		}
 	}
 	
@@ -898,6 +907,29 @@ public class PamController implements PamControllerInterface, PamSettings {
 			if (pcu.getUnitType().equals(unitType)) {
 				l.add(pcu);
 			}
+		}
+
+		return l;
+	}
+	/**
+	 * Get a list of PamControlledUnit units of a given type and name, allowing for nulls. 
+	 * @param unitType Controlled unit type, can be null for all units of name
+	 * @param unitName Controlled unit name, can be null for all units of type
+	 * @return list of units. 
+	 */
+	public ArrayList<PamControlledUnit> findControlledUnits(String unitType, String unitName) {
+		ArrayList<PamControlledUnit> l = new ArrayList<PamControlledUnit>();
+		int n = getNumControlledUnits();
+		PamControlledUnit pcu;
+		for (int i = 0; i < n; i++) {
+			pcu = getControlledUnit(i);
+			if (unitType != null && !unitType.equals(pcu.getUnitType())) {
+				continue;
+			}
+			if (unitName != null && !unitName.equals(pcu.getUnitName())) {
+				continue;
+			}
+			l.add(pcu);
 		}
 
 		return l;

@@ -20,12 +20,21 @@ public class SummaryCommand extends ExtCommand {
 	}
 
 	@Override
-	public boolean execute() {
-		return true;
+	public String execute(String command) {
+//		String[] cmdBits = CommandManager.splitCommandLine(command);
+//		boolean clear = true;
+//		// first word is the command, we want one after that. 
+//		if (cmdBits.length >= 2 && cmdBits[1] != null) {
+//			String bit = cmdBits[1].trim().toLowerCase();
+//			if (bit.equals("0") || bit.equals("false")) {
+//				clear = false;
+//			}
+//			
+//		}
+		return getModulesSummary(true);
 	}
-
-	@Override
-	public String getReturnString() {
+	
+	public String getModulesSummary(boolean clear) {
 		PamController pamController = PamController.getInstance();
 		int nMod = pamController.getNumControlledUnits();
 		PamControlledUnit aModule;
@@ -35,25 +44,23 @@ public class SummaryCommand extends ExtCommand {
 			lastCallTime = PamCalendar.getSessionStartTime();
 		}
 		long nowTime = PamCalendar.getTimeInMillis();
-		totalString = PamCalendar.formatDateTime(lastCallTime) + "-" + PamCalendar.formatDateTime(nowTime);
+		totalString = PamCalendar.formatDBDateTime(lastCallTime) + "-" + PamCalendar.formatDBDateTime(nowTime);
 		int usedModules = 0;
 		for (int i = 0; i < nMod; i++) {
 			aModule = pamController.getControlledUnit(i);
-			aString = aModule.getModuleSummary();
+			aString = aModule.getModuleSummary(clear);
 			if (aString == null) {
 				continue;
 			}
 			usedModules ++;
-			/*
-		strcat(moduleSummaryText, "\n");
-		strcat(moduleSummaryText, module->getModuleName());
-		strcat(moduleSummaryText, ":");
-		strcat(moduleSummaryText, moduleText);
-			 */
 			totalString += String.format("\n<%s>%s:%s<\\%s>", aModule.getShortUnitType(), 
 					aModule.getUnitName(), aString, aModule.getShortUnitType());
 		}
 		return totalString;
 	}
 
+	@Override
+	public String getHint() {
+		return "Get summary information about each running process";
+	}
 }

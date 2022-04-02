@@ -9,10 +9,14 @@ public class StopCommand extends ExtCommand {
 	}
 
 	@Override
-	public boolean execute() {
+	public String execute(String command) {
 		PamController.getInstance().pamStop();
-		return true;
+		return getName();
 	}
 
 
+	@Override
+	public String getHint() {
+		return "Stop PAMGuard processing";
+	}
 }

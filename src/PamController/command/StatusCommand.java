@@ -18,11 +18,10 @@ public class StatusCommand extends ExtCommand {
 	}
 
 	@Override
-	public boolean execute() {
-		return true;
+	public String execute(String command) {
+		return getReturnString();
 	}
 
-	@Override
 	public String getReturnString() {
 		/*
 		 * Need to work out if it's stalled or not by looking at the Daq systems. 
@@ -61,4 +60,9 @@ public class StatusCommand extends ExtCommand {
 		return watchdogComms.getModifiedWatchdogState(status);
 	}
 
+
+	@Override
+	public String getHint() {
+		return "Get the current PAMGuard status. 0=idle, 1=running";
+	}
 }
